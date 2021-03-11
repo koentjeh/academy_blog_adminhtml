@@ -11,25 +11,25 @@ use Magento\Ui\DataProvider\ModifierPoolDataProvider;
 class DataProvider extends ModifierPoolDataProvider
 {
     /** @var PostCollection */
-    protected $postCollection;
+    protected $collection;
 
     /** @var DataPersistorInterface */
     protected $dataPersistor;
 
     /** @var array */
-    protected $loadedData;
+    protected $loadedData = [];
 
     public function __construct(
         $name,
         $primaryFieldName,
         $requestFieldName,
-        PostCollectionFactory $postCollectionFactory,
+        PostCollectionFactory $collectionFactory,
         DataPersistorInterface $dataPersistor,
         array $meta = [],
         array $data = [],
         PoolInterface $pool = null
     ) {
-        $this->postCollection = $postCollectionFactory->create();
+        $this->collection = $collectionFactory->create();
         $this->dataPersistor = $dataPersistor;
         parent::__construct($name, $primaryFieldName, $requestFieldName, $meta, $data, $pool);
     }
@@ -39,21 +39,21 @@ class DataProvider extends ModifierPoolDataProvider
      */
     public function getData(): array
     {
-        if (isset($this->loadedData)) {
+        if (!empty($this->loadedData)) {
             return $this->loadedData;
         }
 
-        $items = $this->postCollection->getItems();
+        $items = $this->collection->getItems();
 
-        foreach ($items as $dealer) {
-            $this->loadedData[$dealer->getId()] = $dealer->getData();
+        foreach ($items as $item) {
+            $this->loadedData[$item->getId()] = $item->getData();
         }
 
         $data = $this->dataPersistor->get('post');
         if (!empty($data)) {
-            $dealer = $this->collection->getNewEmptyItem();
-            $dealer->setData($data);
-            $this->loadedData[$dealer->getId()] = $dealer->getData();
+            $item = $this->collection->getNewEmptyItem();
+            $item->setData($data);
+            $this->loadedData[$item->getId()] = $item->getData();
             $this->dataPersistor->clear('post');
         }
 
